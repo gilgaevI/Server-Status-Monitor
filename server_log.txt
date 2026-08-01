@@ -1,0 +1,2 @@
+ALERT: database is down
+ALERT: database is down
