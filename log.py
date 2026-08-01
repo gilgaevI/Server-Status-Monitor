@@ -9,13 +9,9 @@ def check_servers(servers):
 
 
 def write_log(offline_servers):
-    file = open("server_log.txt", "a")
-
-    for server in offline_servers:
-        file.write("ALERT: " + server + " is down\n")
-
-    file.close()
-
+    with open("server_log.txt", "a") as file:
+        for server in offline_servers:
+            file.write("ALERT: " + server + " is down\n")
 
 servers = {
     "web": "online",
