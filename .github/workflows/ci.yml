@@ -44,9 +44,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Pull image from GHCR
         run: docker pull ghcr.io/gilgaevi/server-status-monitor:latest
-  - name: Start application
+
+      - name: Start application
         run: docker compose up -d
 
       - name: Wait for startup
