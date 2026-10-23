@@ -4,8 +4,11 @@ from flask import Flask, jsonify
 import psycopg2
 import redis
 from datetime import datetime
+from prometheus_client import generate_latest, Counter, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
+
+CHECK_COUNTER = Counter('server_checks_total', 'Total number of server checks', ['status'])
 
 def get_db():
     return psycopg2.connect(
@@ -21,8 +24,11 @@ def get_redis():
 def check_site(url):
     try:
         r = requests.get(url, timeout=5)
-        return "UP" if r.status_code == 200 else "DOWN"
+        status = "UP" if r.status_code == 200 else "DOWN"
+        CHECK_COUNTER.labels(status=status).inc()
+        return status
     except:
+        CHECK_COUNTER.labels(status="DOWN").inc()
         return "DOWN"
 
 @app.route("/")
@@ -60,7 +66,7 @@ def index():
     conn.commit()
     cur.close()
     conn.close()
- 
+
     r.setex("statuses", 30, str(results))
 
     return f"<h1>Status Board</h1><pre>{results}</pre>"
@@ -68,6 +74,10 @@ def index():
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
+
+@app.route("/metrics")
+def metrics():
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
